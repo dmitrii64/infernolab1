@@ -1,11 +1,9 @@
 implement MatrixServer;
 include "sys.m";
-	sys: Sys;
+sys: Sys;
 include "draw.m";
 include "rand.m";
-	rand: Rand;
-
-MATRIX_SIZE : con 4;
+rand: Rand;
 
 input_data_stream: chan of (int,int,int,array of int,array of int);
 output_data_stream: chan of (int,int,int);
@@ -20,55 +18,61 @@ init(nil: ref Draw->Context, argv: list of string)
 	rand = load Rand Rand->PATH;
 	rand -> init(sys->millisec());
 
+	first_size_x := 3;
+	first_size_y := 2;
+
+	second_size_x := 2;
+	second_size_y := 3;
+
 	input_data_stream = chan of (int,int,int,array of int,array of int);
 	output_data_stream = chan of (int,int,int);
 
 	sys->print("Server started...\n");
 	recieved_matrix1 : array of array of int;
-	recieved_matrix1 = array[MATRIX_SIZE] of {* => array[MATRIX_SIZE] of {* => rand->rand(100)}};
+	recieved_matrix1 = array[first_size_x] of {* => array[first_size_y] of {* => rand->rand(100)}};
 	
 	sys->print("Matrix 1:\n");
 
-	for(p:=0;p<MATRIX_SIZE;p++){
-		for(h:=0;h<MATRIX_SIZE;h++)
+	for(p:=0;p<first_size_x;p++){
+		for(h:=0;h<first_size_y;h++)
 			sys->print("%d ",recieved_matrix1[p][h]);
 		sys->print("\n");
 	}
 
-    recieved_matrix2 : array of array of int;
-	recieved_matrix2 = array[MATRIX_SIZE] of {* => array[MATRIX_SIZE] of {* => rand->rand(100)}};
+	recieved_matrix2 : array of array of int;
+	recieved_matrix2 = array[second_size_x] of {* => array[second_size_y] of {* => rand->rand(100)}};
 
 	sys->print("Matrix 2:\n");
 
-	for(p=0;p<MATRIX_SIZE;p++){
-		for(h:=0;h<MATRIX_SIZE;h++)
+	for(p=0;p<second_size_x;p++){
+		for(h:=0;h<second_size_y;h++)
 			sys->print("%d ",recieved_matrix2[p][h]);
 		sys->print("\n");
 	}
 
 	result_matrix : array of array of int;
-	result_matrix = array[MATRIX_SIZE] of {* => array[MATRIX_SIZE] of {* => 0}};
+	result_matrix = array[first_size_x] of {* => array[second_size_y] of {* => 0}};
 
 	sys->print("Multiplication process started...\n");
 	
-	result_matrix = multiply(recieved_matrix1,recieved_matrix2);
+	result_matrix = multiply(first_size_x,first_size_y,second_size_y,recieved_matrix1,recieved_matrix2);
 
 	sys->print("Multiplication process finished.\n");
 
 	sys->print("Result matrix :\n");
 
-	for(p=0;p<MATRIX_SIZE;p++)
+	for(p=0;p<first_size_x;p++)
 	{
-		for(h:=0;h<MATRIX_SIZE;h++)
+		for(h:=0;h<second_size_y;h++)
 			sys->print("%d ",result_matrix[p][h]);
 		sys->print("\n");
 	}
 }
 
-multiply(matrix1 : array of array of int,matrix2 : array of array of int) : array of array of int
+multiply(fsx: int, fsy: int, ssy: int, matrix1 : array of array of int,matrix2 : array of array of int) : array of array of int
 {
 	result_matrix : array of array of int;
-	result_matrix = array[MATRIX_SIZE] of {* => array[MATRIX_SIZE] of {* => 0}};
+	result_matrix = array[fsx] of {* => array[ssy] of {* => 0}};
 
 	for(th:=0;th<2;th++)
 	{
@@ -76,7 +80,7 @@ multiply(matrix1 : array of array of int,matrix2 : array of array of int) : arra
 	}
 
 	col : array of int;
-	col = array[MATRIX_SIZE] of {* => 0};
+	col = array[fsy] of {* => 0};
 
 	ret_i : int;
 	ret_j : int;
@@ -84,19 +88,19 @@ multiply(matrix1 : array of array of int,matrix2 : array of array of int) : arra
 
 	i := 0;
 	j := 0;
-	for(y:=0;y<(MATRIX_SIZE*MATRIX_SIZE*2);y++)
+	for(y:=0;y<(fsx*ssy*2);y++)
 	{
-		for(w:=0;w<MATRIX_SIZE;w++)
+		for(w:=0;w<fsy;w++)
 			col[w] = matrix2[w][j];
-		if(i!=MATRIX_SIZE)
+		if(i!=fsx)
 		{
 			alt
 			{
-				input_data_stream <-= (i,j,MATRIX_SIZE,matrix1[i],col) =>
+				input_data_stream <-= (i,j,fsy,matrix1[i],col) =>
 				{
 					#sys->print("Send to I: %d, J: %d\n",i,j);
 					j++;
-					if(j>=MATRIX_SIZE){
+					if(j>=ssy){
 						j=0;
 						i++;
 					}
