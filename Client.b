@@ -41,10 +41,7 @@ init(nil: ref Draw->Context, argv: list of string)
 
 	wdfd := sys->open(conn.dir+"/data",Sys->OWRITE);
 	rdfd := sys->open(conn.dir+"/data",Sys->OREAD);
-	rfd := sys->open(conn.dir+"/remote",Sys->OREAD);
-
-	
-	
+	rfd := sys->open(conn.dir+"/remote",Sys->OREAD);	
 
 	request := array[4] of int;
 	request[0] = first_size_x;
@@ -53,8 +50,6 @@ init(nil: ref Draw->Context, argv: list of string)
 	request[3] = second_size_y;
 
 	req_bytes := int_array_to_byte_array(request);
-
-	test_ints := byte_array_to_int_array(req_bytes);
 
 	sys->write(wdfd,req_bytes,len req_bytes);
 	sys->print("Request sent...\n");

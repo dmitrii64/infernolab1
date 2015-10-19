@@ -20,16 +20,6 @@ init(nil: ref Draw->Context, argv: list of string){
 	rand = load Rand Rand->PATH;
 	rand -> init(sys->millisec());
 
-
-
-	#(matrix1,matrix2) := matrix_generation(4,5,5,4);
-
-
-	#res := multiplication_setup(4,5,5,4,matrix1,matrix2);
-	#sys->print("Result:\n");
-	#print_matrix(4,4,res);
-
-
 	(n,conn) := sys->announce("tcp!*!6666");
 
 	if(n < 0){
@@ -63,10 +53,9 @@ handler(conn: Connection){
 	n:= sys->read(rfd,buf,len buf);
 
 	request : array of int;
-	while(sys->read(rdfd,buf,len buf) >= 0){
+	if(sys->read(rdfd,buf,len buf) >= 0){
 		request = byte_array_to_int_array(buf[0:16]);
 		sys->print("Request accepted! M1: %dx%d M2: %dx%d\n",request[0],request[1],request[2],request[3]);
-		break;
 	}
 
 	recieved_matrix1 : array of array of int;
@@ -75,14 +64,12 @@ handler(conn: Connection){
 	packed_matrix1_bytes:=array[request[0]*request[1]*4] of byte;
 	packed_matrix2_bytes:=array[request[2]*request[3]*4] of byte;
 
-	while(sys->read(rdfd,packed_matrix1_bytes,len packed_matrix1_bytes) >= 0){
+	if(sys->read(rdfd,packed_matrix1_bytes,len packed_matrix1_bytes) >= 0){
 		recieved_matrix1 = unpack_matrix(request[0],request[1],byte_array_to_int_array(packed_matrix1_bytes));
-		break;
 	}
 
-	while(sys->read(rdfd,packed_matrix2_bytes,len packed_matrix2_bytes) >= 0){
+	if(sys->read(rdfd,packed_matrix2_bytes,len packed_matrix2_bytes) >= 0){
 		recieved_matrix2 = unpack_matrix(request[2],request[3],byte_array_to_int_array(packed_matrix2_bytes));
-		break;
 	}
 
 	sys->print("Recieved both matrices!\n");
@@ -187,7 +174,6 @@ multiply(ids: chan of (int,int,int,array of int,array of int), ods: chan of (int
 	col : array of int;
 	row : array of int;
 
-
 	ret_i : int;
 	ret_j : int;
 	ret_result : int;
@@ -195,8 +181,6 @@ multiply(ids: chan of (int,int,int,array of int,array of int), ods: chan of (int
 	i := 0;
 	j := 0;
 	for(y:=0;y<(fsx*ssy*2);y++){
-
-		
 		if(i!=fsx){
 			col = array[fsy] of {* => 0};
 			row = array[fsy] of {* => 0};
@@ -214,14 +198,6 @@ multiply(ids: chan of (int,int,int,array of int,array of int), ods: chan of (int
 			{
 				ids <-= (i,j,fsy,row,col) =>
 				{
-					#sys->print("Send to I: %d, J: %d\n",i,j);
-					#for(it:=0;it<fsy;it++)
-					#	sys->print("%d ",row[it]);
-					#sys->print("\n");
-					#for(it2:=0;it2<fsy;it2++)
-					#	sys->print("%d ",col[it2]);
-					#sys->print("\n");
-
 					j++;
 					if(j==ssy){
 						j=0;
@@ -231,7 +207,6 @@ multiply(ids: chan of (int,int,int,array of int,array of int), ods: chan of (int
 				}
 				(ret_i,ret_j,ret_result) =<-ods =>
 				{
-					#sys->print("Result from I: %d, J: %d Result: %d\n",ret_i,ret_j,ret_result);
 					result_matrix[ret_i][ret_j] = ret_result;
 					ret_i = 0;
 					ret_j = 0;
@@ -239,8 +214,7 @@ multiply(ids: chan of (int,int,int,array of int,array of int), ods: chan of (int
 				}
 			}
 		} else {
-			(ret_i,ret_j,ret_result) =<- ods;	
-			#sys->print("Else Result from I: %d, J: %d Result: %d\n",ret_i,ret_j,ret_result);
+			(ret_i,ret_j,ret_result) =<- ods;
 			result_matrix[ret_i][ret_j] = ret_result;
 			ret_i = 0;
 			ret_j = 0;
@@ -268,10 +242,6 @@ thread(ids:chan of (int,int,int,array of int,array of int), ods: chan of (int,in
 			
 		ods<-= (i,j,result);
 		
-		#for(u:=0;u<size;u++)
-		#	sys->print("%d:%d[%d] %d %d  \n",i,j,u,a[u],b[u]);
-		
-
 		result = 0;
 		i = 0;
 		j = 0;
