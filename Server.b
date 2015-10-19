@@ -90,18 +90,21 @@ handler(conn: Connection){
 
 	result_matrix : array of array of int;
 
+	sys->print("M1:\n");
+	print_matrix(request[0],request[1],recieved_matrix1);
 
-
-	#sys->print("M1:\n");
-	#print_matrix(request[0],request[1],recieved_matrix1);
-
-	#sys->print("M2:\n");
-	#print_matrix(request[2],request[3],recieved_matrix2);
+	sys->print("M2:\n");
+	print_matrix(request[2],request[3],recieved_matrix2);
 
 	result_matrix = multiplication_setup(request[0],request[1],request[2],request[3],recieved_matrix1,recieved_matrix2);
 
+	packed_matrix := pack_matrix(request[0],request[3],result_matrix);
+	result_bytes := int_array_to_byte_array(packed_matrix);
+
+	sys->write(wdfd,result_bytes,len result_bytes);
+
 	sys->print("Result matrix :\n");
-	#print_matrix(request[0],request[3],result_matrix);
+	print_matrix(request[0],request[3],result_matrix);
 }
 
 

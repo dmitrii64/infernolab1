@@ -40,6 +40,11 @@ init(nil: ref Draw->Context, argv: list of string)
 	(matrix1,matrix2) = matrix_generation(first_size_x,first_size_y,second_size_x,second_size_y);
 
 	wdfd := sys->open(conn.dir+"/data",Sys->OWRITE);
+	rdfd := sys->open(conn.dir+"/data",Sys->OREAD);
+	rfd := sys->open(conn.dir+"/remote",Sys->OREAD);
+
+	
+	
 
 	request := array[4] of int;
 	request[0] = first_size_x;
@@ -64,6 +69,20 @@ init(nil: ref Draw->Context, argv: list of string)
 
 	sys->print("Waiting...\n");
 
+
+	result_matrix_bytes := array[first_size_x*second_size_y*4] of byte;
+
+	n2:= sys->read(rfd,result_matrix_bytes,len result_matrix_bytes);
+	if(sys->read(rdfd,result_matrix_bytes,len result_matrix_bytes) >= 0){
+		sys->print("Recieved reuslt! ...\n");
+		packed_result := byte_array_to_int_array(result_matrix_bytes);
+		unpacked_result := unpack_matrix(first_size_x,second_size_y,packed_result);
+		print_matrix(first_size_x,second_size_y,unpacked_result);
+	}
+	else
+	{
+		sys->print("Error! ...\n");	
+	}
 }
 
 int_array_to_byte_array(int_array: array of int) : array of byte {
@@ -107,13 +126,13 @@ matrix_generation(fsx: int,fsy: int,ssx: int,ssy: int) : (array of array of int,
 	generated_matrix1 = array[fsx] of {* => array[fsy] of {* => rand->rand(100)}};
 	
 	sys->print("Matrix 1:\n");
-	#print_matrix(fsx,fsy,generated_matrix1);
+	print_matrix(fsx,fsy,generated_matrix1);
 
 	generated_matrix2 : array of array of int;
 	generated_matrix2 = array[ssx] of {* => array[ssy] of {* => rand->rand(100)}};
 
 	sys->print("Matrix 2:\n");
-	#print_matrix(ssx,ssy,generated_matrix2);
+	print_matrix(ssx,ssy,generated_matrix2);
 
 	return (generated_matrix1,generated_matrix2);
 }
