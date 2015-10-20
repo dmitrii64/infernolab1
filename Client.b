@@ -28,16 +28,22 @@ init(nil: ref Draw->Context, argv: list of string)
 		exit;
 	}
 
-	first_size_x := 5;
-	first_size_y := 5;
+	first_size_x := 200;
+	first_size_y := 200;
 
-	second_size_x := 5;
-	second_size_y := 5;
+	second_size_x := 200;
+	second_size_y := 200;
 
 	matrix1 : array of array of int;
 	matrix2 : array of array of int;
 
 	(matrix1,matrix2) = matrix_generation(first_size_x,first_size_y,second_size_x,second_size_y);
+
+	sys->print("Matrix 1:\n");
+	print_matrix(first_size_x, first_size_y, matrix1);
+
+	sys->print("Matrix 2:\n");
+	print_matrix(second_size_x, second_size_y, matrix2);
 
 	wdfd := sys->open(conn.dir+"/data",Sys->OWRITE);
 	rdfd := sys->open(conn.dir+"/data",Sys->OREAD);
@@ -120,23 +126,24 @@ matrix_generation(fsx: int,fsy: int,ssx: int,ssy: int) : (array of array of int,
 	generated_matrix1 : array of array of int;
 	generated_matrix1 = array[fsx] of {* => array[fsy] of {* => rand->rand(100)}};
 	
-	sys->print("Matrix 1:\n");
-	print_matrix(fsx,fsy,generated_matrix1);
-
 	generated_matrix2 : array of array of int;
 	generated_matrix2 = array[ssx] of {* => array[ssy] of {* => rand->rand(100)}};
-
-	sys->print("Matrix 2:\n");
-	print_matrix(ssx,ssy,generated_matrix2);
 
 	return (generated_matrix1,generated_matrix2);
 }
 
 print_matrix(sizex: int,sizey: int,matrix: array of array of int)
 {
-	for(p:=0;p<sizex;p++){
-		for(h:=0;h<sizey;h++)
-			sys->print("%d ",matrix[p][h]);
-		sys->print("\n");
+	if(sizex < 20 && sizey < 20)
+	{
+		for(p:=0;p<sizex;p++){
+			for(h:=0;h<sizey;h++)
+				sys->print("%d ",matrix[p][h]);
+			sys->print("\n");
+		}
+	}
+	else
+	{
+		sys->print("[passed matrix is too large]\n");
 	}
 }
