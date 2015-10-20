@@ -83,7 +83,9 @@ handler(conn: Connection){
 	sys->print("M2:\n");
 	print_matrix(request[2],request[3],recieved_matrix2);
 
+	start_ms := sys->millisec();
 	result_matrix = multiplication_setup(request[0],request[1],request[2],request[3],recieved_matrix1,recieved_matrix2);
+	sys->print("Multiplication time: %dms\n", sys->millisec()-start_ms);
 
 	packed_matrix := pack_matrix(request[0],request[3],result_matrix);
 	result_bytes := int_array_to_byte_array(packed_matrix);
@@ -143,23 +145,25 @@ matrix_generation(fsx: int, fsy: int, ssx: int, ssy: int) : (array of array of i
 	generated_matrix1 : array of array of int;
 	generated_matrix1 = array[fsx] of {* => array[fsy] of {* => rand->rand(100)}};
 	
-	sys->print("Matrix 1:\n");
-	print_matrix(fsx,fsy,generated_matrix1);
-
 	generated_matrix2 : array of array of int;
 	generated_matrix2 = array[ssx] of {* => array[ssy] of {* => rand->rand(100)}};
-
-	sys->print("Matrix 2:\n");
-	print_matrix(ssx,ssy,generated_matrix2);
 
 	return (generated_matrix1,generated_matrix2);
 }
 
-print_matrix(sizex: int,sizey: int,matrix: array of array of int){
-	for(p:=0;p<sizex;p++){
-		for(h:=0;h<sizey;h++)
-			sys->print("%d ",matrix[p][h]);
-		sys->print("\n");
+print_matrix(sizex: int,sizey: int,matrix: array of array of int)
+{
+	if(sizex < 20 && sizey < 20)
+	{
+		for(p:=0;p<sizex;p++){
+			for(h:=0;h<sizey;h++)
+				sys->print("%d ",matrix[p][h]);
+			sys->print("\n");
+		}
+	}
+	else
+	{
+		sys->print("[passed matrix is too large]\n");
 	}
 }
 
